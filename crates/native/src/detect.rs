@@ -347,11 +347,7 @@ pub mod linux {
 
     /// Where a package put the app's binary: on `PATH`, else `/usr/bin/<id>`.
     fn binary_on_path(id: &str) -> String {
-        std::env::var_os("PATH")
-            .and_then(|path| std::env::split_paths(&path).map(|d| d.join(id)).find(|p| p.is_file()))
-            .unwrap_or_else(|| PathBuf::from("/usr/bin").join(id))
-            .display()
-            .to_string()
+        crate::process::which(id).unwrap_or_else(|| PathBuf::from("/usr/bin").join(id)).display().to_string()
     }
 
     /// `~/Applications`, where the launcher puts AppImages (the AppImageLauncher convention).
@@ -422,7 +418,7 @@ pub mod linux {
     }
 
     fn find_binary(id: &str) -> Option<PathBuf> {
-        let on_path = std::env::var_os("PATH").and_then(|path| std::env::split_paths(&path).map(|d| d.join(id)).find(|p| p.is_file()));
+        let on_path = crate::process::which(id);
         let usual = ["/usr/bin", "/usr/local/bin"].into_iter().map(PathBuf::from).chain(dirs::home_dir().map(|h| h.join(".local/bin")));
         on_path.or_else(|| usual.map(|d| d.join(id)).find(|p| p.is_file()))
     }

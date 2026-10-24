@@ -396,6 +396,8 @@ pub mod linux {
         appimages_in(app, &appimage_dirs())
     }
 
+    /// How the app is installed, in this order: an AppImage the launcher put down, a package
+    /// (deb, rpm, pacman or Flatpak), else a binary found on disk.
     pub fn detect(app: &CraftApp, snapshot: &Snapshot) -> Option<Installed> {
         if let Some((path, version)) = appimages(app).into_iter().next() {
             return Some(Installed { version, source: InstallSource::AppImage, location: path.display().to_string(), package: None });
@@ -417,12 +419,15 @@ pub mod linux {
         Some(Installed { version: binary_version(&bin, app), source: InstallSource::Binary, location: bin.display().to_string(), package: None })
     }
 
+    /// The app's binary on `PATH`, else in `/usr/bin`, `/usr/local/bin` or `~/.local/bin`.
     fn find_binary(id: &str) -> Option<PathBuf> {
         let on_path = crate::process::which(id);
         let usual = ["/usr/bin", "/usr/local/bin"].into_iter().map(PathBuf::from).chain(dirs::home_dir().map(|h| h.join(".local/bin")));
         on_path.or_else(|| usual.map(|d| d.join(id)).find(|p| p.is_file()))
     }
 
+    /// The version `bin --version` prints, or `None` when it doesn't answer within 5 seconds or
+    /// prints no version.
     pub(crate) fn binary_version(bin: &Path, app: &CraftApp) -> Option<version::Version> {
         let out = crate::process::capture(bin.to_str()?, &["--version"], Duration::from_secs(5))?;
         parse_cli_version(out.trim(), app)

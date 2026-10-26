@@ -115,6 +115,17 @@ pub fn download_prefix(repo: &str) -> String {
     format!("https://github.com/{repo}/releases/download/")
 }
 
+/// The one link a GitHub release asset may have: `https://github.com/<repo>/releases/download/<tag>/<name>`,
+/// built from the release's own tag and the asset's own name, so a link can't point at another
+/// release or anywhere else (#764). `None` when the tag or name holds anything but ASCII letters,
+/// digits and `._+-`, which no Craft App release uses and which github.com could re-interpret.
+pub fn expected_download_url(repo: &str, tag: &str, name: &str) -> Option<String> {
+    let plain = |s: &str, max: usize| {
+        !s.is_empty() && s.len() <= max && s != "." && s != ".." && s.bytes().all(|b| b.is_ascii_alphanumeric() || b"._+-".contains(&b))
+    };
+    (plain(tag, 64) && plain(name, 200) && valid_file_name(name)).then(|| format!("{}{tag}/{name}", download_prefix(repo)))
+}
+
 /// Whether `url` is a download that truly belongs to `repo`.
 ///
 /// A raw `starts_with(prefix)` check is not enough: a value such as
@@ -195,14 +206,14 @@ fn release_from_value(v: &serde_json::Value, repo: &str) -> Result<Release, Stri
     let tag = v["tag_name"].as_str().filter(|t| !t.is_empty() && t.len() <= 64).ok_or("no release found")?.to_string();
     let releases = format!("https://github.com/{repo}/releases");
     let html_url = v["html_url"].as_str().and_then(|u| safe_release_html_url(repo, u)).unwrap_or_else(|| releases.clone());
-    let prefix = download_prefix(repo);
     let assets = v["assets"]
         .as_array()
         .map(|list| {
             list.iter()
                 .filter_map(|a| {
                     let name = a["name"].as_str().filter(|n| valid_file_name(n))?.to_string();
-                    let url = a["browser_download_url"].as_str().filter(|u| download_url_under(u, &prefix))?.to_string();
+                    let url =
+                        a["browser_download_url"].as_str().filter(|u| expected_download_url(repo, &tag, &name).as_deref() == Some(*u))?.to_string();
                     let sha256 = a["digest"].as_str().and_then(|d| d.strip_prefix("sha256:")).filter(|h| is_hex64(h)).map(str::to_ascii_lowercase);
                     Some(Asset { name, size: a["size"].as_u64().unwrap_or(0), url, sha256 })
                 })
@@ -343,6 +354,27 @@ mod tests {
         assert_eq!(r.assets.len(), 1);
         assert_eq!(r.assets[0].sha256.as_deref(), Some(HASH));
         assert_eq!(r.assets[0].size, 123);
+    }
+
+    /// #764: an API asset's link must be exactly this release's `<tag>/<name>`.
+    #[test]
+    fn a_download_link_must_be_its_releases_own() {
+        for url in [
+            // Another release of the same app (a rollback), or another file name.
+            "https://github.com/storytold/photocraft/releases/download/v0.4.0/photocraft-0.5.0-macos-universal.dmg",
+            "https://github.com/storytold/photocraft/releases/download/v0.5.0/photocraft-0.4.0-macos-universal.dmg",
+            "https://github.com/storytold/photocraft/releases/download/%2e%2e/%2E%2E/%2e%2e/%2e%2e/other/repo/releases/download/v1/photocraft-0.5.0-macos-universal.dmg",
+        ] {
+            assert!(parse_github_release(&api_json(url), REPO).unwrap().assets.is_empty(), "{url}");
+        }
+        assert_eq!(
+            expected_download_url(REPO, "v0.6.0-rc.1", "photocraft-0.6.0-rc.1-macos-universal.dmg").as_deref(),
+            Some("https://github.com/storytold/photocraft/releases/download/v0.6.0-rc.1/photocraft-0.6.0-rc.1-macos-universal.dmg")
+        );
+        for (tag, name) in [("", "x.dmg"), ("..", "x.dmg"), ("v1", ".."), ("v1", "a/b.dmg"), ("v1", "a%2fb.dmg"), ("v 1", "x.dmg"), ("v1", ".x.dmg")]
+        {
+            assert_eq!(expected_download_url(REPO, tag, name), None, "{tag:?} {name:?}");
+        }
     }
 
     #[test]

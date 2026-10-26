@@ -266,6 +266,7 @@ pub fn valid_file_name(name: &str) -> bool {
         && name != "."
         && name != ".."
         && !name.starts_with('.')
+        && !contains_encoded_separator(name)
         && !name.chars().any(|c| c.is_control() || matches!(c, '/' | '\\' | ':' | '<' | '>' | '"' | '|' | '?' | '*'))
 }
 
@@ -430,9 +431,16 @@ mod tests {
 
     #[test]
     fn file_names_cannot_escape() {
-        for bad in ["", "..", "a/b", "a\\b", ".hidden", "c:x", "x\u{0}"] {
+        for bad in ["", "..", "a/b", "a\\b", ".hidden", "c:x", "x\u{0}", "%2e%2e%2fother", "a%2Fb", "a%5cb", "x%2E%2E"] {
             assert!(!valid_file_name(bad), "{bad:?}");
         }
         assert!(valid_file_name("photocraft-0.5.0-linux-x86_64.AppImage"));
+    }
+
+    #[test]
+    fn checksum_names_with_encoded_separators_make_no_download() {
+        let hash = "a".repeat(64);
+        let sums = parse_sha256sums(&format!("{hash}  %2e%2e%2f%2e%2e%2fother%2frepo%2fx.dmg\n{hash}  photocraft-0.5.0-macos-universal.dmg\n"));
+        assert_eq!(sums.iter().map(|(_, n)| n.as_str()).collect::<Vec<_>>(), ["photocraft-0.5.0-macos-universal.dmg"]);
     }
 }

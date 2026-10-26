@@ -58,6 +58,10 @@ pub fn install(
 
 type RecordCommit<'a> = Option<&'a mut dyn FnMut(&Record) -> Result<(), String>>;
 
+/// [`install`], with `commit` called to save the record as soon as the new copy is in place. In
+/// order, before anything is fetched: the destination, the app not running, the artifact's
+/// version ([`bind_artifact_version`]), no downgrade unless `job.replace`, and the download link
+/// itself ([`check_download_link`]).
 #[allow(clippy::too_many_arguments)]
 pub fn install_at(
     app: &CraftApp,
@@ -2607,6 +2611,8 @@ mod tests {
         assert!(result.unwrap_err().contains("installed version 0.5.0 is newer"));
     }
 
+    /// An artifact whose file name, link tag or link repository disagrees with the release is
+    /// refused before any download.
     #[test]
     fn install_rejects_an_artifact_whose_version_is_not_the_advertised_one() {
         // The release advertises 99.0.0, but the selected artifact is an older official build

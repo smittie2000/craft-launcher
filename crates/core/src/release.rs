@@ -199,6 +199,9 @@ pub fn parse_github_release_list(json: &str, repo: &str, allow_prerelease: bool)
     Ok(best)
 }
 
+/// One release object of the GitHub API, with every text capped and only the assets whose name is
+/// a plain file name and whose link is exactly [`expected_download_url`]. An API error object
+/// (`message`) becomes its text.
 fn release_from_value(v: &serde_json::Value, repo: &str) -> Result<Release, String> {
     if let Some(msg) = v["message"].as_str() {
         return Err(if msg == "Not Found" { "no releases yet".into() } else { format!("GitHub says: {}", truncate(msg, 200)) });
@@ -377,6 +380,8 @@ mod tests {
         }
     }
 
+    /// Links to other hosts or repositories, or that climb out with `..` or encoded separators,
+    /// are dropped.
     #[test]
     fn drops_downloads_that_point_elsewhere() {
         for url in ["https://evil.example/photocraft.dmg", "https://github.com/storytold/other/releases/download/v1/x.dmg", "javascript:alert(1)"] {
@@ -461,6 +466,8 @@ mod tests {
         assert_eq!(r.version, Some(Version::new(0, 5, 0)));
     }
 
+    /// A name with a path, a hidden or reserved form, a control character or a percent-encoded
+    /// separator isn't a file name we'd save.
     #[test]
     fn file_names_cannot_escape() {
         for bad in ["", "..", "a/b", "a\\b", ".hidden", "c:x", "x\u{0}", "%2e%2e%2fother", "a%2Fb", "a%5cb", "x%2E%2E"] {
@@ -469,6 +476,8 @@ mod tests {
         assert!(valid_file_name("photocraft-0.5.0-linux-x86_64.AppImage"));
     }
 
+    /// A `SHA256SUMS.txt` line whose name hides a traversal is dropped, so `release_from_sums`
+    /// never builds a link from it; the ordinary line beside it is kept.
     #[test]
     fn checksum_names_with_encoded_separators_make_no_download() {
         let hash = "a".repeat(64);

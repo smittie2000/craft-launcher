@@ -500,15 +500,18 @@ impl LauncherUi {
             let mut strip_ui = ui.new_child(
                 egui::UiBuilder::new().max_rect(strip.shrink2(vec2(CARD_PAD, 0.0))).layout(egui::Layout::left_to_right(egui::Align::Center)),
             );
-            if !version.is_empty() {
-                let github_w = widgets::hud_galley(&strip_ui, &format!("{} ↗", tl!("GitHub")), t.muted).size().x;
-                let room = (strip_ui.available_width() - github_w - 16.0).max(0.0);
-                widgets::hud_elided(&mut strip_ui, &version, if in_colour { t.app_ink(app) } else { t.muted }, room);
-            }
-            strip_ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                ui.spacing_mut().item_spacing.x = 16.0;
-                widgets::hud_link(ui, tl!("GitHub"), &app.repo_url());
-            });
+            // The link is laid out first; the version gets the room left and is elided to it.
+            let height = strip_ui.available_height();
+            egui::Sides::new().shrink_left().height(height).spacing(16.0).show(
+                &mut strip_ui,
+                |ui| {
+                    if !version.is_empty() {
+                        let room = ui.available_width();
+                        widgets::hud_elided(ui, &version, if in_colour { t.app_ink(app) } else { t.muted }, room);
+                    }
+                },
+                |ui| widgets::hud_link(ui, tl!("GitHub"), &app.repo_url()),
+            );
         }
 
         let inner = Rect::from_min_max(egui::pos2(rect.left() + CARD_PAD, strip.bottom() + 18.0), rect.max - vec2(CARD_PAD, CARD_PAD));

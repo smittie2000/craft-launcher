@@ -151,11 +151,12 @@ fn contains_traversal(rest: &str) -> bool {
     rest.split('/').any(|seg| seg == "." || seg == "..")
 }
 
-/// Percent-encoded slash or backslash (`%2f`, `%5c`): a client could decode these back into
-/// separators after the check, so a confined URL must not contain them.
+/// Percent-encoded slash, backslash or dot (`%2f`, `%5c`, `%2e`): a client or github.com could
+/// decode these back into separators or a `..` segment after the check (#764), so a confined URL
+/// must not contain them.
 fn contains_encoded_separator(rest: &str) -> bool {
     let bytes = rest.as_bytes();
-    bytes.windows(3).any(|w| w[0] == b'%' && matches!(&w[1..].to_ascii_lowercase()[..], b"2f" | b"5c"))
+    bytes.windows(3).any(|w| w[0] == b'%' && matches!(&w[1..].to_ascii_lowercase()[..], b"2f" | b"5c" | b"2e"))
 }
 
 /// Reads `GET /repos/<repo>/releases/latest` (or one element of `/releases`).
@@ -274,11 +275,7 @@ pub(crate) fn truncate(s: &str, max: usize) -> String {
     if s.len() <= max {
         return s.to_string();
     }
-    let mut end = max;
-    while !s.is_char_boundary(end) {
-        end -= 1;
-    }
-    format!("{}…", &s[..end])
+    format!("{}…", &s[..s.floor_char_boundary(max)])
 }
 
 #[cfg(test)]
@@ -392,6 +389,9 @@ mod tests {
             "https://github.com/storytold/photocraft/releases/download/v1/sub/x.dmg",
             "https://github.com/storytold/photocraft/releases/download/v1%2f..%2f..%2fx.dmg",
             "https://github.com/storytold/photocraft/releases/download/v1/x%2fy.dmg",
+            "https://github.com/storytold/photocraft/releases/download/%2e%2e/x.dmg",
+            "https://github.com/storytold/photocraft/releases/download/%2E%2E/x.dmg",
+            "https://github.com/storytold/photocraft/releases/download/v1/%2e%2e",
         ] {
             let prefix = download_prefix(REPO);
             assert!(!download_url_under(url, &prefix), "{url}");

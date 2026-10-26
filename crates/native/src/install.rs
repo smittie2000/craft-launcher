@@ -170,7 +170,7 @@ pub(crate) fn bind_artifact_version(app: &CraftApp, release: &Release, asset: &A
     }
 
     // The release tag and filename embedded in a release download URL (`.../releases/download/<tag>/<name>`).
-    if let Some(rest) = asset.url.split("/releases/download/").nth(1) {
+    if let Some((_, rest)) = asset.url.split_once("/releases/download/") {
         let mut parts = rest.split('/');
         let tag = parts.next().unwrap_or("");
         let url_filename = parts.next().unwrap_or("");

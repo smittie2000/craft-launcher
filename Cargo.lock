@@ -300,8 +300,8 @@ dependencies = [
 name = "artcraft-launcher-core"
 version = "0.8.1"
 dependencies = [
+ "craft-update",
  "jiff",
- "semver",
  "serde",
  "serde_json",
 ]
@@ -966,7 +966,7 @@ dependencies = [
 [[package]]
 name = "craft-update"
 version = "0.1.0"
-source = "git+https://github.com/storytold/craft-libs?rev=495e5971bc024aa96e6ed318cb6e7cd3a0103184#495e5971bc024aa96e6ed318cb6e7cd3a0103184"
+source = "git+https://github.com/smittie2000/craft-libs?rev=815c52b5c5a9570a469097a2459bcb50d05730f2#815c52b5c5a9570a469097a2459bcb50d05730f2"
 dependencies = [
  "chrono",
  "dunce",

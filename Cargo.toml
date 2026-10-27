@@ -32,7 +32,7 @@ log = "0.4"
 jiff = "0.2"
 # Release parsing, versions and platforms are craft-update's (`core` uses them without `native`,
 # so they build for wasm32); `native` adds downloads, installs and self-update.
-craft-update = { git = "https://github.com/smittie2000/craft-libs", version = "=0.1.0", rev = "815c52b5c5a9570a469097a2459bcb50d05730f2", default-features = false }
+craft-update = { git = "https://github.com/smittie2000/craft-libs", version = "=0.1.0", rev = "341c001c0b1830ac8183a16db9e09a2837b18fc3", default-features = false }
 
 [profile.dev.package."*"]
 opt-level = 2

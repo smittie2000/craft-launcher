@@ -26,8 +26,9 @@ crates/
                                         and status types it shares (storytold/craft-libs)
   native    artcraft-launcher-native    desktop only: detecting installed apps, download, verify
                                         and install; re-exports craft-update's HTTP client,
-                                        paths, manifest, proxy, process, release source and
-                                        portable installs
+                                        paths, manifest, proxy, process, release source,
+                                        portable installs, Linux menu entries, package
+                                        listings and the installer queue
   ui-egui   artcraft-launcher-ui-egui   the shared egui UI (desktop and web)
 apps/
   artcraft-launcher                     desktop shell (eframe): window, tray icon, notifications

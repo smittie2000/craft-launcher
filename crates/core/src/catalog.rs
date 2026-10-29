@@ -52,8 +52,7 @@ pub struct CraftApp {
 }
 
 impl CraftApp {
-    /// The app as craft-update's installers know it, with its menu icon. Not for code that needs a
-    /// community app's own bundle ids, which craft-update's `App` doesn't carry.
+    /// The app as craft-update's installers know it, with its menu icon and bundle ids.
     pub fn update_app(&self) -> craft_update::App {
         craft_update::App {
             id: self.id,
@@ -63,6 +62,8 @@ impl CraftApp {
             former_ids: self.former_ids,
             former_names: self.former_names,
             icon_png: app_icon_png(self.id),
+            bundle: self.bundle,
+            former_bundles: self.former_bundles,
         }
     }
 

@@ -24,18 +24,14 @@ pub fn current() -> Option<Install> {
     craft_update::self_update::current(&craft_update::suite::LAUNCHER)
 }
 
-fn to_update_paths(paths: &Paths) -> craft_update::Paths {
-    craft_update::Paths { data: paths.data.clone(), cache: paths.cache.clone() }
-}
-
 /// Whether `release` is the version this launcher just updated itself to.
 pub fn just_updated_to(paths: &Paths, release: &Release) -> bool {
-    craft_update::self_update::just_updated_to(&to_update_paths(paths), release)
+    craft_update::self_update::just_updated_to(paths, release)
 }
 
 /// The error of the last update, if it failed, once.
 pub fn take_failure(paths: &Paths) -> Option<String> {
-    craft_update::self_update::take_failure(&to_update_paths(paths))
+    craft_update::self_update::take_failure(paths)
 }
 
 /// Downloads `release` for `platform`, puts it in place and starts the helper that relaunches
@@ -60,7 +56,7 @@ pub fn update(
         release,
         platform,
         &update_http,
-        &to_update_paths(paths),
+        paths,
         stop,
         phase,
         last,

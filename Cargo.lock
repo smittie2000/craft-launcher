@@ -6232,6 +6232,7 @@ version = "0.9.0"
 dependencies = [
  "jiff",
  "semver",
+ "sha2",
 ]
 
 [[package]]

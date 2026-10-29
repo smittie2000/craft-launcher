@@ -10,6 +10,7 @@
 pub mod backend;
 pub mod desktop_entry;
 pub mod detect;
+pub mod discord;
 pub mod feed_throttle;
 pub mod http;
 pub mod install;
@@ -18,7 +19,6 @@ pub mod login;
 mod msi_context;
 pub mod packages;
 pub mod paths;
-pub mod process;
 pub mod queue;
 pub mod screenshots;
 pub mod self_update;
@@ -26,8 +26,9 @@ pub mod single_instance;
 
 pub use backend::NativeBackend;
 // Shared with every Craft app's installer through craft-update: the launcher's record of what it
-// installed, the system proxy settings downloads go through, and GitHub release lookups.
-pub use craft_update::{manifest, now, proxy, source};
+// installed, starting programs, the system proxy settings downloads go through, and GitHub
+// release lookups.
+pub use craft_update::{manifest, now, process, proxy, source};
 // Portable zip installs on Windows.
 #[cfg(windows)]
 pub use craft_update::portable;

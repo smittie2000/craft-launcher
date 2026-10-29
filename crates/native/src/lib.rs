@@ -25,9 +25,8 @@ pub mod queue;
 pub mod screenshots;
 pub mod self_update;
 pub mod single_instance;
-pub mod source;
 
 pub use backend::NativeBackend;
 // Shared with every Craft app's installer through craft-update: the launcher's record of what it
-// installed, and the system proxy settings downloads go through.
-pub use craft_update::{manifest, now, proxy};
+// installed, the system proxy settings downloads go through, and GitHub release lookups.
+pub use craft_update::{manifest, now, proxy, source};

@@ -149,7 +149,7 @@ pub fn install_at(
         }
         #[cfg(windows)]
         PackageKind::PortableZip => {
-            crate::portable::install(app, &file, &version, previous, job.paths, destination.as_deref(), job.replace, &mut |record| {
+            crate::portable::install(&app.update_app(), &file, &version, previous, job.paths, destination.as_deref(), job.replace, &mut |record| {
                 if release.version.is_some() && crate::detect::windows::executable_version(&record.path).as_ref() != release.version.as_ref() {
                     return Err("The portable executable does not match the selected version. The installation was rolled back.".into());
                 }
@@ -662,7 +662,7 @@ pub fn uninstall(
     match installed.source {
         #[cfg(windows)]
         InstallSource::Launcher if record.is_some_and(|r| r.kind == PackageKind::PortableZip) => {
-            crate::portable::remove(app, record.ok_or("the launcher has no record of these files")?)
+            crate::portable::remove(&app.update_app(), record.ok_or("the launcher has no record of these files")?)
         }
         #[cfg(windows)]
         InstallSource::Msi => windows::uninstall_msi(app, stop, phase),

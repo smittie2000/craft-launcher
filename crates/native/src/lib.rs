@@ -18,8 +18,6 @@ pub mod login;
 mod msi_context;
 pub mod packages;
 pub mod paths;
-#[cfg(windows)]
-pub mod portable;
 pub mod process;
 pub mod queue;
 pub mod screenshots;
@@ -30,3 +28,6 @@ pub use backend::NativeBackend;
 // Shared with every Craft app's installer through craft-update: the launcher's record of what it
 // installed, the system proxy settings downloads go through, and GitHub release lookups.
 pub use craft_update::{manifest, now, proxy, source};
+// Portable zip installs on Windows.
+#[cfg(windows)]
+pub use craft_update::portable;

@@ -42,20 +42,18 @@ pub fn update(
     install: &Install,
     release: &Release,
     platform: Platform,
-    _http: &Http,
+    http: &Http,
     paths: &Paths,
     stop: &Stop,
     phase: &mut dyn FnMut(JobPhase),
     last: &dyn Fn() -> Result<(), String>,
 ) -> Result<(), String> {
-    // The download goes to github.com's release CDN, never the API, so no token is needed.
-    let update_http = craft_update::Http::new(crate::http::USER_AGENT)?;
     craft_update::self_update::update(
         &craft_update::suite::LAUNCHER,
         install,
         release,
         platform,
-        &update_http,
+        http,
         paths,
         stop,
         phase,

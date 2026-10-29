@@ -2402,7 +2402,7 @@ mod tests {
         let release = Release { assets: vec![asset.clone()], ..Release::default() };
         let dir = tempfile::tempdir().unwrap();
         let paths = Paths::under(dir.path());
-        let http = Http::new().unwrap();
+        let http = Http::new(crate::http::USER_AGENT).unwrap();
         // A format no build of the launcher installs here stands in for any failing install step.
         let kind = if cfg!(windows) { PackageKind::Dmg } else { PackageKind::Msi };
         let mut phases = Vec::new();
@@ -2436,7 +2436,7 @@ mod tests {
         let missing = dir.path().join("unavailable/Apps");
         let locations = InstallLocations { root: Some(missing.display().to_string()), ..Default::default() };
         let paths = Paths::under(dir.path());
-        let http = Http::new().unwrap();
+        let http = Http::new(crate::http::USER_AGENT).unwrap();
         let mut phases = vec![];
         let mut phase = |p| phases.push(p);
         let mut job = Job { http: &http, paths: &paths, stop: &Stop::default(), phase: &mut phase, install_locations: &locations, replace: false };
@@ -2458,7 +2458,7 @@ mod tests {
         let release = Release { assets: vec![asset.clone()], ..Release::default() };
         let dir = tempfile::tempdir().unwrap();
         let paths = Paths::under(dir.path());
-        let http = Http::new().unwrap();
+        let http = Http::new(crate::http::USER_AGENT).unwrap();
         let kind = if cfg!(windows) { PackageKind::Dmg } else { PackageKind::Msi };
         let mut phases = Vec::new();
         let mut phase = |p: JobPhase| phases.push(p);
@@ -2968,7 +2968,7 @@ mod tests {
     fn install_refuses_to_downgrade_when_target_release_is_older() {
         let dir = tempfile::tempdir().unwrap();
         let paths = Paths::under(dir.path());
-        let http = Http::new().unwrap();
+        let http = Http::new(crate::http::USER_AGENT).unwrap();
         let phase = &mut |_| ();
         let locations = InstallLocations::default();
         let app = CraftApp::by_id("photocraft").unwrap();
@@ -2995,7 +2995,7 @@ mod tests {
         // (filename and URL tag say 0.4.0). The guard must refuse before any download.
         let dir = tempfile::tempdir().unwrap();
         let paths = Paths::under(dir.path());
-        let http = Http::new().unwrap();
+        let http = Http::new(crate::http::USER_AGENT).unwrap();
         let phase = &mut |_| ();
         let locations = InstallLocations::default();
         let app = CraftApp::by_id("photocraft").unwrap();
@@ -3063,7 +3063,7 @@ mod tests {
     fn install_accepts_a_plus_release_up_to_the_download() {
         let dir = tempfile::tempdir().unwrap();
         let paths = Paths::under(dir.path());
-        let http = Http::new().unwrap();
+        let http = Http::new(crate::http::USER_AGENT).unwrap();
         let phase = &mut |_| ();
         let locations = InstallLocations::default();
         let app = CraftApp::by_id("photocraft").unwrap();
